@@ -1,92 +1,157 @@
 <div align="center">
-    <h2>Fixed Header Table Layout for Android</h2>
+    <h2>FixedHeaderTableLayout</h2>
+    <p>A recycling 2D table view for Android with pinned header rows and columns.</p>
 </div>
 
-FixedHeaderTableLayout is a powerful Android library for displaying complex data structures and rendering tabular data composed of rows, columns and cells with multi direction scrolling and zooming.
+This is a Kotlin + RecyclerView rewrite of the original
+[Zardozz/FixedHeaderTableLayout](https://github.com/Zardozz/FixedHeaderTableLayout)
+library. The original library inflated every cell up front and ran an O(rows × columns)
+measure pass, which made very large tables (sports stats, financial grids, etc.) slow to
+draw and prone to OOM crashes.
 
-This repository also contains a sample app that is designed to show you how to create your own FixedHeaderTableLayout in your application.
+This fork's `1.0.0` is a clean re-implementation that:
 
-FixedHeaderTableLayout is similar in construction and use as to Android's TableLayout  
+- Recycles cell views via `RecyclerView` — memory is `O(visible_cells)` regardless of
+  total table size. 10,000-row grids are fine.
+- Takes column widths from the adapter rather than measuring every cell — no quadratic
+  measure pass.
+- Exposes a small Kotlin adapter API modelled on `RecyclerView.Adapter`.
+- Drops the pinch-zoom feature from `0.x`. Matrix transforms and recycling don't combine
+  cleanly. If you need pinch-to-zoom on a table, use a `ScaleGestureDetector` and a
+  scale-aware container around this view.
 
-<p align="center">
-      <img src="https://raw.githubusercontent.com/Zardozz/FixedHeaderTableLayout/master/art/FixedHeaderTableLayout.gif">
-</p>
+## Status
 
-# Note
-<h1>This Library is current in development and is considered in an Alpha state</h1>
-
-## Features
-  - [x] 1 to X number of rows can be fixed as column headers at the top of the table.
-  - [x] 1 to X number of rows can be fixed as row headers at the left of the table.
-  - [x] Multi direction scrolling is available if the table is larger than the screen.
-  - [x] Pinch Zoom is available.
-  - [x] Standard scrollbars are available.
-  - [x] Clicks are passed to children views.
-  - [x] Each column width value will be automatically adjusted to fit the largest cell in the column.
-  - [x] Each row height value will be automatically adjusted to fit the largest cell in the row.
-  - [x] Support for API 21 upwards
-
-## Bonus Feature
-The FixedHeaderSubTableLayout behaves like a normal TableLayout But it gives you direct access to the cell sizes.
-
-Thus it is possible to align cells between independent tables allowing you to build more complicated tables with borders easier,
-easily split tables across print pages, viewpager, etc by using modular groups of aligned tables next to each other.
-It also allows a form of column spanning, a column in one table can be made to be the size of multiple columns
-in the adjacent table, so it looks like column spanning.
-
-Some examples in the MultiTableExample in the Example App.
-
-<p align="center">
-      <img src="https://raw.githubusercontent.com/Zardozz/FixedHeaderTableLayout/master/art/MultiTableExample.png">
-</p>
-
-## Feature TODO list
-  - [x] Scale around pinch center.
-  - [x] Corner layout location and layout direction to support Right to Left Languages.
-  - [x] Some type of column span (Nested Tables) support.
-  - [x] Making the fixed headers optional (at least one of each is required at the moment).
-  - [x] Documentation.
-  - [x] Automated Tests.
-  - [x] Probably lots more.
-
-## Limitations
-  - [x] As per Android's TableLayout constructing/drawing very large tables takes some time.
-
-
-## What's new
-
-You can check new implementations of `TableView` on the [release page](https://github.com/Zardozz/FixedHeaderTableLayout/releases).
+`1.0.0` — first release of the fork. The API is intentionally small. Breaking changes
+from `0.x` are total; see [Migrating from 0.x](#migrating-from-0x) below.
 
 ## Installation
 
-To use this library in your Android project
-
-Add Maven Central to the project's `build.gradle` :
+```groovy
+dependencies {
+    implementation 'com.github.jbailey2010:fixedheadertablelayout:1.0.0'
+}
 ```
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
+
+Minimum SDK: 21. Kotlin not required for consumers; the API is `@JvmOverloads`-annotated
+where it matters, but a Kotlin codebase will read more naturally.
+
+## Basic usage
+
+XML:
+
+```xml
+<com.github.jbailey2010.fixedheadertable.FixedHeaderTable
+    android:id="@+id/table"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+```
+
+Adapter:
+
+```kotlin
+class PlayerStatsAdapter(private val rows: List<List<String>>) : FixedHeaderTableAdapter() {
+    override val rowCount get() = rows.size
+    override val columnCount get() = rows.first().size
+
+    // 1 pinned header row at top; 1 pinned column (player name) at left.
+    override val fixedRowCount = 1
+    override val fixedColumnCount = 1
+
+    override fun getColumnWidth(col: Int) = if (col == 0) 240 else 144   // px
+    override fun getRowHeight(row: Int) = 96                              // px
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CellViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.cell, parent, false)
+        return TextCellHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: CellViewHolder, row: Int, col: Int) {
+        (holder as TextCellHolder).textView.text = rows[row][col]
     }
 }
-```
 
-Add the following dependency into your module's `build.gradle`:
-```
-dependencies {
-    implementation 'com.github.jbailey2010:fixedheadertablelayout:0.0.0.6'
+class TextCellHolder(view: View) : CellViewHolder(view) {
+    val textView: TextView = view.findViewById(R.id.cell_text)
 }
 ```
 
-## Documentation
+Activity:
 
-Please check out the [project's wiki](https://github.com/Zardozz/FixedHeaderTableLayout/wiki).
+```kotlin
+findViewById<FixedHeaderTable>(R.id.table).adapter = PlayerStatsAdapter(stats)
+```
 
-## Contributors
+## Multi-table use (column-aligned siblings)
 
-Contributions of any kind are welcome!
+Multiple `FixedHeaderTable` instances can share column widths via `SharedColumnWidths` and
+share cell-view recycling via a single `RecyclerView.RecycledViewPool`:
 
-If you wish to contribute to this project, please refer to our [contributing guide](.github/CONTRIBUTING.md).
+```kotlin
+val widths = SharedColumnWidths(intArrayOf(240, 96, 96, 96, 96))   // px
+val pool = RecyclerView.RecycledViewPool()
+
+fun makeAdapter(data: List<List<String>>) = object : FixedHeaderTableAdapter() {
+    init { widths.addListener { col, _ -> notifyColumnChanged(col) } }
+    override val rowCount get() = data.size
+    override val columnCount get() = data.first().size
+    override fun getColumnWidth(col: Int) = widths.get(col)
+    override fun getRowHeight(row: Int) = 80
+    // ... onCreateViewHolder / onBindViewHolder
+}
+
+table1.setRecycledViewPool(pool)
+table1.adapter = makeAdapter(period1Stats)
+table2.setRecycledViewPool(pool)
+table2.adapter = makeAdapter(period2Stats)
+
+// Update column 1 everywhere by calling shared.set(...).
+widths.set(1, 120)
+```
+
+## Notifying changes
+
+```kotlin
+adapter.notifyDataSetChanged()       // wholesale rebuild
+adapter.notifyCellChanged(row, col)  // single cell; preserves scroll
+adapter.notifyRowChanged(row)        // entire row
+adapter.notifyColumnChanged(col)     // entire column
+```
+
+`notifyCellChanged` is cheap and is the right call for toggle/highlight interactions —
+unlike `notifyDataSetChanged` it does not reset the scroll position.
+
+## Migrating from `0.x`
+
+Total breaking change. There is no compatibility shim — the API has been replaced.
+
+Conceptual mapping:
+
+| `0.x`                                                | `1.0.0`                                                                |
+| ---------------------------------------------------- | ---------------------------------------------------------------------- |
+| `FixedHeaderTableLayout` (FrameLayout)               | `FixedHeaderTable` (FrameLayout)                                       |
+| `addViews(main, colHeader, rowHeader, corner)`       | `adapter = MyAdapter(...)`                                             |
+| Manually-built `FixedHeaderSubTableLayout` per region | Single adapter declares `fixedRowCount` / `fixedColumnCount`            |
+| Manually-inflated cells in `FixedHeaderTableRow`     | `onCreateViewHolder` / `onBindViewHolder`                              |
+| Implicit column widths via measure                   | Explicit per-column widths via `getColumnWidth(col)`                   |
+| `fhtl_min_scale` / `fhtl_max_scale` pinch zoom       | **Removed.** No replacement in-library.                                |
+| `FixedHeaderSubTableLayout` for column-aligned tables | `SharedColumnWidths` + shared `RecycledViewPool`                       |
+
+In practice migration is: write a `FixedHeaderTableAdapter` that returns your data,
+delete the four-quadrant view-building code, drop any references to pinch zoom.
+
+## Limitations
+
+- Column widths are declared, not measured. If you need auto-fit, compute widths from
+  your data before constructing the adapter (e.g. by measuring the header row only).
+- The body's row view holders keep their inner cell RVs alive across vertical recycling,
+  which bounds memory at `(visible_rows + cache) × visible_cols` cell views. For very
+  wide tables this is still vastly better than the original library's `rows × cols`.
+
+## Credits
+
+Original library by Andrew Beck ([Zardozz](https://github.com/Zardozz)), MIT licensed.
+This fork by Jeff Bailey, same license.
 
 ## License
 
@@ -94,6 +159,7 @@ If you wish to contribute to this project, please refer to our [contributing gui
 MIT License
 
 Copyright (c) 2021 Andrew Beck
+Copyright (c) 2026 Jeff Bailey
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

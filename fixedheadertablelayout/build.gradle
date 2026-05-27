@@ -29,7 +29,7 @@ plugins {
 
 ext {
     PUBLISH_GROUP_ID = 'com.github.jbailey2010'
-    PUBLISH_VERSION = '0.0.0.6'
+    PUBLISH_VERSION = '1.0.0'
     PUBLISH_ARTIFACT_ID = 'fixedheadertablelayout'
 }
 
@@ -48,7 +48,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace 'com.github.zardozz.FixedHeaderTableLayout'
+    namespace 'com.github.jbailey2010.fixedheadertable'
     compileSdk 35
 
     defaultConfig {
@@ -96,8 +96,12 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
+    // RecyclerView is `api` so library consumers can subclass CellViewHolder
+    // and reference RecycledViewPool without adding their own dependency.
+    api 'androidx.recyclerview:recyclerview:1.3.2'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test:core:1.6.1'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/btn_widen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/multi_widen_button" />
+
+    <com.github.jbailey2010.fixedheadertable.FixedHeaderTable
+        android:id="@+id/table_top"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/colorBackground" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/colorHeader" />
+
+    <com.github.jbailey2010.fixedheadertable.FixedHeaderTable
+        android:id="@+id/table_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/colorBackground" />
+</LinearLayout>

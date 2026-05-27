@@ -9,18 +9,22 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.FixedHeaderTableLayout">
         <activity
-            android:name=".MultiTableExampleActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainExampleActivity" />
+        <activity
+            android:name=".BasicTableActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LargeTableActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MultiTableActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

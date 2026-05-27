@@ -1,29 +1,7 @@
-<!--
-  ~  MIT License
-  ~
-  ~ Copyright (c) 2021 Andrew Beck
-  ~
-  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
-  ~ of this software and associated documentation files (the "Software"), to deal
-  ~ in the Software without restriction, including without limitation the rights
-  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  ~ copies of the Software, and to permit persons to whom the Software is
-  ~ furnished to do so, subject to the following conditions:
-  ~
-  ~ The above copyright notice and this permission notice shall be included in all
-  ~ copies or substantial portions of the Software.
-  ~
-  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  ~ SOFTWARE.
-  -->
-
 <resources>
     <string name="app_name">FixedHeaderTableLayout</string>
-    <string name="main_example">Main Example</string>
-    <string name="multi_table_example">Multi Table Example</string>
+    <string name="basic_example">Basic Table (interactive)</string>
+    <string name="large_example">Large Table (5000 rows)</string>
+    <string name="multi_example">Multi-Table (shared widths)</string>
+    <string name="multi_widen_button">Widen column 1 by 8dp (both tables)</string>
 </resources>
