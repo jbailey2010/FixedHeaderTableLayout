@@ -24,7 +24,7 @@ FixedHeaderTableLayout is similar in construction and use as to Android's TableL
   - [x] Clicks are passed to children views.
   - [x] Each column width value will be automatically adjusted to fit the largest cell in the column.
   - [x] Each row height value will be automatically adjusted to fit the largest cell in the row.
-  - [x] Support for API 16 upwards
+  - [x] Support for API 21 upwards
 
 ## Bonus Feature
 The FixedHeaderSubTableLayout behaves like a normal TableLayout But it gives you direct access to the cell sizes.
@@ -74,7 +74,7 @@ allprojects {
 Add the following dependency into your module's `build.gradle`:
 ```
 dependencies {
-    implementation 'com.github.Zardozz:fixedheadertablelayout:0.0.0.5'
+    implementation 'com.github.jbailey2010:fixedheadertablelayout:0.0.0.6'
 }
 ```
 

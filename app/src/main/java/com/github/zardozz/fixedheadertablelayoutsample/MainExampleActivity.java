@@ -27,11 +27,11 @@ package com.github.zardozz.fixedheadertablelayoutsample;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -39,9 +39,10 @@ import android.widget.TextView;
 
 import com.github.zardozz.FixedHeaderTableLayout.*;
 
-import java.lang.ref.SoftReference;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainExampleActivity extends AppCompatActivity {
 
@@ -53,6 +54,9 @@ public class MainExampleActivity extends AppCompatActivity {
     FixedHeaderSubTableLayout rowHeaderTable;
     FixedHeaderSubTableLayout cornerTable;
 
+    private ExecutorService backgroundExecutor;
+    private Handler mainHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,11 +65,34 @@ public class MainExampleActivity extends AppCompatActivity {
         fixedHeaderTableLayout = findViewById(R.id.FixedHeaderTableLayout);
         pgsBar = findViewById(R.id.pBar);
 
-        // Really this should be done in the background as generating such a big layout takes time
-        GenerateTables generateTables = new GenerateTables(this);
-        generateTables.execute();
+        // Generating such a big layout takes time, so do it off the main thread.
+        backgroundExecutor = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
+        generateTablesAsync();
+    }
 
+    @Override
+    protected void onDestroy() {
+        if (backgroundExecutor != null) {
+            backgroundExecutor.shutdownNow();
+        }
+        if (mainHandler != null) {
+            mainHandler.removeCallbacksAndMessages(null);
+        }
+        super.onDestroy();
+    }
 
+    private void generateTablesAsync() {
+        pgsBar.setVisibility(View.VISIBLE);
+        Context appContext = getApplicationContext();
+        backgroundExecutor.execute(() -> {
+            createTable(appContext);
+            mainHandler.post(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                fixedHeaderTableLayout.addViews(mainTable, columnHeaderTable, rowHeaderTable, cornerTable);
+                pgsBar.setVisibility(View.GONE);
+            });
+        });
     }
 
     @Override
@@ -81,52 +108,6 @@ public class MainExampleActivity extends AppCompatActivity {
             fixedHeaderTableLayout.calculatePanScale(0,0, 0, 0, 1f);
         }
     }
-
-    @SuppressLint("StaticFieldLeak")
-    private class GenerateTables extends AsyncTask<Void, Integer, Void> {
-
-        private final SoftReference<MainExampleActivity> activityReference;
-        private final Context mContext;
-
-        // only retain a soft reference to the activity
-        GenerateTables(MainExampleActivity context) {
-            mContext = context;
-            activityReference = new SoftReference<>(context);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            // get a reference to the activity if it is still there
-            MainExampleActivity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) return;
-
-            activity.pgsBar.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            createTable(mContext);
-            return null;
-        }
-
-
-        @Override
-        protected void onPostExecute(Void param) {
-
-            // get a reference to the activity if it is still there
-            MainExampleActivity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) return;
-
-            // Setup FixHeader Table
-            fixedHeaderTableLayout.addViews(mainTable, columnHeaderTable, rowHeaderTable, cornerTable);
-
-            activity.pgsBar.setVisibility(View.GONE);
-        }
-
-    }
-
 
     private static final String ALLOWED_CHARACTERS ="qwertyuiopasdfghjklzxcvbnm";
 

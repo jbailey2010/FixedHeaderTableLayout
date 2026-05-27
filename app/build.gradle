@@ -27,77 +27,64 @@ plugins {
 }
 
 File keystorePropertiesFile = project.rootProject.file('local.properties')
+def hasReleaseKeystore = false
+def releaseKeystoreProperties = null
 if (keystorePropertiesFile.exists()) {
-    System.out.println('Signing Keyfile exists ')
-    def keystoreProperties = new Properties()
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-    // If the property file has enough properties to enable releasing
-    if (keystoreProperties['keystore'] != null &&
-            keystoreProperties['keystore.storePassword'] != null &&
-            keystoreProperties['keystore.keyAlias'] != null &&
-            keystoreProperties['keystore.keyPassword'] != null
-    ) {
-        System.out.println('Keyfile has enough properties')
-        android {
-            signingConfigs {
-                release {
-                    storeFile file(keystoreProperties['keystore'])
-                    storePassword keystoreProperties['keystore.storePassword']
-                    keyAlias keystoreProperties['keystore.keyAlias']
-                    keyPassword keystoreProperties['keystore.keyPassword']
-                }
-            }
-        }
-    } else {
-        android {
-            signingConfigs {
-                release {
-                }
-            }
-        }
-    }
-} else {
-    android {
-        signingConfigs {
-            release {
-            }
-        }
-    }
+    releaseKeystoreProperties = new Properties()
+    releaseKeystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    hasReleaseKeystore = releaseKeystoreProperties['keystore'] != null &&
+            releaseKeystoreProperties['keystore.storePassword'] != null &&
+            releaseKeystoreProperties['keystore.keyAlias'] != null &&
+            releaseKeystoreProperties['keystore.keyPassword'] != null
 }
 
 android {
-    compileSdkVersion 31
+    namespace 'com.github.zardozz.fixedheadertablelayoutsample'
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.github.zardozz.fixedheadertablelayoutsample"
-        minSdkVersion 16
-        targetSdkVersion 31
-        versionCode 5
-        versionName "0.0.0.5"
+        minSdk 21
+        targetSdk 34
+        versionCode 6
+        versionName "0.0.0.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
+    signingConfigs {
         release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseKeystore) {
+                storeFile file(releaseKeystoreProperties['keystore'])
+                storePassword releaseKeystoreProperties['keystore.storePassword']
+                keyAlias releaseKeystoreProperties['keystore.keyAlias']
+                keyPassword releaseKeystoreProperties['keystore.keyPassword']
+            }
         }
     }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
     implementation project(path: ':fixedheadertablelayout')
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }

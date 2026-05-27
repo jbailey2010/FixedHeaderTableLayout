@@ -23,7 +23,6 @@
   ~ SOFTWARE.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.github.zardozz.FixedHeaderTableLayout">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
 </manifest>
