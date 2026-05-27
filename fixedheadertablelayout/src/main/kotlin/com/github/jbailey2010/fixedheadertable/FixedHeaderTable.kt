@@ -8,6 +8,8 @@
 package com.github.jbailey2010.fixedheadertable
 
 import android.content.Context
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
@@ -96,7 +98,14 @@ class FixedHeaderTable @JvmOverloads constructor(
             _adapter = value
             value?.registerObserver(adapterObserver)
             rebuild()
+            // If state was restored before the adapter was set, the pending scroll
+            // applies now that we have a layout to drive.
+            applyPendingScrollWhenReady()
         }
+
+    // Scroll offsets stashed by onRestoreInstanceState until adapter + layout exist.
+    private var pendingVerticalOffset: Int = 0
+    private var pendingHorizontalOffset: Int = 0
 
     /**
      * Replace the internal cell pool. Multiple [FixedHeaderTable] instances sharing the
@@ -232,4 +241,83 @@ class FixedHeaderTable @JvmOverloads constructor(
     }
 
     private fun exactly(size: Int) = MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY)
+
+    // --- saved state ------------------------------------------------------------------
+    //
+    // The view must have an android:id for the framework to track its instance state
+    // across config changes. Without an ID, scroll position resets on rotation — that's
+    // an Android-level constraint, not a library one.
+
+    override fun onSaveInstanceState(): Parcelable {
+        val superState = super.onSaveInstanceState()
+        return SavedState(
+            superState,
+            verticalOffset = bodyRv.computeVerticalScrollOffset(),
+            horizontalOffset = horizontalCoordinator.currentOffset,
+        )
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        if (state !is SavedState) {
+            super.onRestoreInstanceState(state)
+            return
+        }
+        super.onRestoreInstanceState(state.superState)
+        pendingVerticalOffset = state.verticalOffset
+        pendingHorizontalOffset = state.horizontalOffset
+        applyPendingScrollWhenReady()
+    }
+
+    private fun applyPendingScrollWhenReady() {
+        if (_adapter == null) return
+        if (pendingVerticalOffset == 0 && pendingHorizontalOffset == 0) return
+
+        val vTarget = pendingVerticalOffset
+        val hTarget = pendingHorizontalOffset
+        pendingVerticalOffset = 0
+        pendingHorizontalOffset = 0
+
+        // The new TableRegionAdapters were just assigned in rebuild(); their internal
+        // RVs lay out on the next frame. Post so the body's children (and their inner
+        // row RVs) are attached and registered with the horizontal coordinator.
+        bodyRv.post {
+            if (vTarget != 0) {
+                val current = bodyRv.computeVerticalScrollOffset()
+                bodyRv.scrollBy(0, vTarget - current)
+            }
+            if (hTarget != 0) {
+                horizontalCoordinator.scrollToOffset(hTarget)
+            }
+        }
+    }
+
+    private class SavedState : BaseSavedState {
+        val verticalOffset: Int
+        val horizontalOffset: Int
+
+        constructor(superState: Parcelable?, verticalOffset: Int, horizontalOffset: Int) :
+            super(superState) {
+            this.verticalOffset = verticalOffset
+            this.horizontalOffset = horizontalOffset
+        }
+
+        constructor(source: Parcel) : super(source) {
+            verticalOffset = source.readInt()
+            horizontalOffset = source.readInt()
+        }
+
+        override fun writeToParcel(out: Parcel, flags: Int) {
+            super.writeToParcel(out, flags)
+            out.writeInt(verticalOffset)
+            out.writeInt(horizontalOffset)
+        }
+
+        companion object {
+            @JvmField
+            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(source: Parcel): SavedState = SavedState(source)
+                override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
+            }
+        }
+    }
 }

@@ -1,21 +1,21 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# Consumer ProGuard rules for FixedHeaderTableLayout.
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# These rules ship inside the AAR and are merged into the consumer app's R8 config
+# when the app sets `minifyEnabled true`. Their job: keep the library's public API
+# surface so consumer code that references it survives shrinking.
+#
+# Internal types (anything under `internal/`) are intentionally not kept here — they
+# are reachable from the public API through reference, which is enough for R8 to
+# preserve what it actually needs.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+-keep public class com.github.jbailey2010.fixedheadertable.FixedHeaderTable { *; }
+-keep public class com.github.jbailey2010.fixedheadertable.FixedHeaderTableAdapter { *; }
+-keep public class com.github.jbailey2010.fixedheadertable.CellViewHolder { *; }
+-keep public class com.github.jbailey2010.fixedheadertable.SharedColumnWidths { *; }
+-keep public class com.github.jbailey2010.fixedheadertable.SharedColumnWidths$Listener { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# The view's saved-state Parcelable must keep its CREATOR field for instance-state
+# restoration to find it via reflection.
+-keepclassmembers class com.github.jbailey2010.fixedheadertable.FixedHeaderTable$SavedState {
+    public static ** CREATOR;
+}

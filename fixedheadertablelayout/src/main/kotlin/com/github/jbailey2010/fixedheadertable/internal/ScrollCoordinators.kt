@@ -82,6 +82,22 @@ internal class HorizontalScrollCoordinator {
         }
     }
 
+    /** Current shared horizontal offset in pixels. */
+    val currentOffset: Int get() = sharedOffset
+
+    /**
+     * Scroll every registered RV to [target] pixels from origin, and update the shared
+     * offset. Used to restore saved scroll state after configuration changes.
+     */
+    fun scrollToOffset(target: Int) {
+        val delta = target - sharedOffset
+        if (delta == 0) return
+        sharedOffset = target
+        propagating = true
+        for (rv in registered) rv.scrollBy(delta, 0)
+        propagating = false
+    }
+
     /**
      * Resets the shared offset to 0 and scrolls every registered RV back to its origin.
      * Call when the table adapter changes — the new dataset has fresh column geometry,

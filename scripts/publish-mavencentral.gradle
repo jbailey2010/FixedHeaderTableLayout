@@ -57,15 +57,20 @@ publishing {
 
             pom {
                 name = PUBLISH_ARTIFACT_ID
-                description = 'Fixed Header Table Library for Android'
-                url = 'https://github.com/Zardozz/FixedHeaderTableLayout'
+                description = 'Fixed-header 2D table view for Android with RecyclerView-backed cell recycling.'
+                url = 'https://github.com/jbailey2010/FixedHeaderTableLayout'
                 licenses {
                     license {
                         name = 'MIT License'
-                        url = 'https://github.com/Zardozz/FixedHeaderTableLayout/blob/main/LICENSE'
+                        url = 'https://github.com/jbailey2010/FixedHeaderTableLayout/blob/master/LICENSE'
                     }
                 }
                 developers {
+                    developer {
+                        id = 'jbailey2010'
+                        name = 'Jeff Bailey'
+                        email = 'jbailey2010@gmail.com'
+                    }
                     developer {
                         id = 'Zardozz'
                         name = 'Andrew Beck'
@@ -73,9 +78,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:github.com/Zardozz/FixedHeaderTableLayout.git'
-                    developerConnection = 'scm:git:ssh://github.com/Zardozz/FixedHeaderTableLayout.git'
-                    url = 'https://github.com/Zardozz/FixedHeaderTableLayout/tree/master'
+                    connection = 'scm:git:github.com/jbailey2010/FixedHeaderTableLayout.git'
+                    developerConnection = 'scm:git:ssh://github.com/jbailey2010/FixedHeaderTableLayout.git'
+                    url = 'https://github.com/jbailey2010/FixedHeaderTableLayout/tree/master'
                 }
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
