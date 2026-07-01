@@ -3,7 +3,7 @@ package com.github.zardozz.fixedheadertablelayoutsample
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.github.jbailey2010.fixedheadertable.FixedHeaderTable
+import io.github.jbailey2010.fixedheadertable.FixedHeaderTable
 
 /**
  * Stress test: 5000 rows × 20 columns. With the recycling RecyclerView architecture this

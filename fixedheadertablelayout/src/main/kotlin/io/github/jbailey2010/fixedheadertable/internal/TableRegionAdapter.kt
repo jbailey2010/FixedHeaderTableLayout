@@ -5,14 +5,14 @@
  * Copyright (c) 2026 Jeff Bailey (fork)
  */
 
-package com.github.jbailey2010.fixedheadertable.internal
+package io.github.jbailey2010.fixedheadertable.internal
 
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.github.jbailey2010.fixedheadertable.CellViewHolder
-import com.github.jbailey2010.fixedheadertable.FixedHeaderTableAdapter
+import io.github.jbailey2010.fixedheadertable.CellViewHolder
+import io.github.jbailey2010.fixedheadertable.FixedHeaderTableAdapter
 
 /**
  * Drives one of the four table regions (corner / column-header / row-header / body).

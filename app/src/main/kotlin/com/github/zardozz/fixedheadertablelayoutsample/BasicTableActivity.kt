@@ -2,7 +2,7 @@ package com.github.zardozz.fixedheadertablelayoutsample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.github.jbailey2010.fixedheadertable.FixedHeaderTable
+import io.github.jbailey2010.fixedheadertable.FixedHeaderTable
 
 /**
  * Small interactive table: 12 rows × 8 columns of fake player stats with one fixed

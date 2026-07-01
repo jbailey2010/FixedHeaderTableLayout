@@ -1,4 +1,4 @@
-package com.github.jbailey2010.fixedheadertable
+package io.github.jbailey2010.fixedheadertable
 
 import android.view.View
 import android.view.ViewGroup

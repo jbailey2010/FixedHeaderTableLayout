@@ -5,7 +5,7 @@
  * Copyright (c) 2026 Jeff Bailey (fork)
  */
 
-package com.github.jbailey2010.fixedheadertable
+package io.github.jbailey2010.fixedheadertable
 
 import android.content.Context
 import android.graphics.Paint
