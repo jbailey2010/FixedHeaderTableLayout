@@ -94,12 +94,30 @@ class FixedHeaderTable @JvmOverloads constructor(
         get() = _adapter
         set(value) {
             if (value === _adapter) return
+
+            // Snapshot vertical scroll before the new region adapters replace the
+            // old ones — RecyclerView zeros its internal position on setAdapter, so
+            // we have to restore vertical explicitly. Horizontal is preserved
+            // automatically via HorizontalScrollCoordinator.sharedOffset, which is
+            // a table-level value the region-level adapter swap doesn't touch;
+            // newly-attached row RVs snap to it when they register.
+            val hadAdapter = _adapter != null
+            val carryV = if (hadAdapter) bodyRv.computeVerticalScrollOffset() else 0
+
             _adapter?.unregisterObserver(adapterObserver)
             _adapter = value
             value?.registerObserver(adapterObserver)
+
+            if (value == null) {
+                // Clearing — wipe horizontal state so subsequent fresh sets start at 0.
+                horizontalCoordinator.reset()
+            }
+
             rebuild()
-            // If state was restored before the adapter was set, the pending scroll
-            // applies now that we have a layout to drive.
+
+            if (hadAdapter && value != null && carryV > 0) {
+                pendingVerticalOffset = carryV
+            }
             applyPendingScrollWhenReady()
         }
 
@@ -183,7 +201,10 @@ class FixedHeaderTable @JvmOverloads constructor(
 
         val fr = a.fixedRowCount
         val fc = a.fixedColumnCount
-        horizontalCoordinator.reset()
+        // Deliberately not resetting horizontalCoordinator here: the adapter setter
+        // does it explicitly when it wants a fresh start (adapter → null). For
+        // same-shape swaps, sharedOffset persists and newly-attached inner row RVs
+        // snap to it in HorizontalScrollCoordinator.register().
 
         cornerRv.adapter = TableRegionAdapter(a, 0, fr, 0, fc, cellPool)
         columnHeaderRv.adapter = TableRegionAdapter(a, 0, fr, fc, a.columnCount, cellPool)

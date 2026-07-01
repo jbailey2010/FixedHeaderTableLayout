@@ -7,6 +7,7 @@
 
 package com.github.jbailey2010.fixedheadertable.internal
 
+import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
 /**
@@ -114,8 +115,8 @@ internal class HorizontalScrollCoordinator {
     }
 
     private fun applyCurrentOffset(rv: RecyclerView) {
-        val target = sharedOffset
-        val sync = Runnable {
+        val sync = {
+            val target = sharedOffset
             val cur = rv.computeHorizontalScrollOffset()
             if (cur != target) {
                 propagating = true
@@ -123,7 +124,25 @@ internal class HorizontalScrollCoordinator {
                 propagating = false
             }
         }
-        // computeHorizontalScrollOffset returns 0 before first layout; defer if needed.
-        if (rv.isLaidOut && rv.childCount > 0) sync.run() else rv.post(sync)
+        if (rv.isLaidOut && rv.childCount > 0) {
+            sync()
+        } else {
+            // A freshly-attached row RV hasn't been given its cell adapter yet at
+            // register time (bind() runs after attach). Waiting on a plain post can
+            // fire before cells are laid out, making scrollBy a no-op. Hook into
+            // the actual layout pass so we sync exactly once the row has cells.
+            rv.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+                override fun onLayoutChange(
+                    v: View, l: Int, t: Int, r: Int, b: Int,
+                    oldL: Int, oldT: Int, oldR: Int, oldB: Int,
+                ) {
+                    val recycler = v as RecyclerView
+                    if (recycler.width > 0 && recycler.childCount > 0) {
+                        recycler.removeOnLayoutChangeListener(this)
+                        sync()
+                    }
+                }
+            })
+        }
     }
 }
