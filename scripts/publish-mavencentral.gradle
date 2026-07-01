@@ -1,20 +1,6 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-task androidSourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    if (project.plugins.findPlugin("com.android.library")) {
-        from android.sourceSets.main.java.srcDirs
-    } else {
-        from sourceSets.main.java.srcDirs
-    }
-}
-
-artifacts {
-    archives androidSourcesJar
-}
-
-
 group = PUBLISH_GROUP_ID
 version = PUBLISH_VERSION
 
@@ -41,73 +27,80 @@ if (secretPropsFile.exists()) {
     ext["sonatypeStagingProfileId"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
 }
 
-publishing {
-    publications {
-        release(MavenPublication) {
-            groupId PUBLISH_GROUP_ID
-            artifactId PUBLISH_ARTIFACT_ID
-            version PUBLISH_VERSION
-            if (project.plugins.findPlugin("com.android.library")) {
-                artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-            } else {
-                artifact("$buildDir/libs/${project.getName()}-${version}.jar")
-            }
+// Opt AGP into publishing the release variant with a sources jar. This must
+// happen before afterEvaluate below because it configures the release component.
+android {
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
 
-            artifact androidSourcesJar
+// components.release isn't available until AGP has finished configuring the
+// library, so declare the publication inside afterEvaluate.
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = PUBLISH_GROUP_ID
+                artifactId = PUBLISH_ARTIFACT_ID
+                version = PUBLISH_VERSION
 
-            pom {
-                name = PUBLISH_ARTIFACT_ID
-                description = 'Fixed-header 2D table view for Android with RecyclerView-backed cell recycling.'
-                url = 'https://github.com/jbailey2010/FixedHeaderTableLayout'
-                licenses {
-                    license {
-                        name = 'MIT License'
-                        url = 'https://github.com/jbailey2010/FixedHeaderTableLayout/blob/master/LICENSE'
+                pom {
+                    name = PUBLISH_ARTIFACT_ID
+                    description = 'Fixed-header 2D table view for Android with RecyclerView-backed cell recycling.'
+                    url = 'https://github.com/jbailey2010/FixedHeaderTableLayout'
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://github.com/jbailey2010/FixedHeaderTableLayout/blob/master/LICENSE'
+                        }
                     }
-                }
-                developers {
-                    developer {
-                        id = 'jbailey2010'
-                        name = 'Jeff Bailey'
-                        email = 'jbailey2010@gmail.com'
+                    developers {
+                        developer {
+                            id = 'jbailey2010'
+                            name = 'Jeff Bailey'
+                            email = 'jbailey2010@gmail.com'
+                        }
+                        developer {
+                            id = 'Zardozz'
+                            name = 'Andrew Beck'
+                            email = 'andrew-beck@outlook.com'
+                        }
                     }
-                    developer {
-                        id = 'Zardozz'
-                        name = 'Andrew Beck'
-                        email = 'andrew-beck@outlook.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:github.com/jbailey2010/FixedHeaderTableLayout.git'
-                    developerConnection = 'scm:git:ssh://github.com/jbailey2010/FixedHeaderTableLayout.git'
-                    url = 'https://github.com/jbailey2010/FixedHeaderTableLayout/tree/master'
-                }
-                withXml {
-                    def dependenciesNode = asNode().appendNode('dependencies')
-
-                    project.configurations.implementation.allDependencies.each {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
+                    scm {
+                        connection = 'scm:git:github.com/jbailey2010/FixedHeaderTableLayout.git'
+                        developerConnection = 'scm:git:ssh://github.com/jbailey2010/FixedHeaderTableLayout.git'
+                        url = 'https://github.com/jbailey2010/FixedHeaderTableLayout/tree/master'
                     }
                 }
             }
         }
-    }
-    repositories {
-        maven {
-            name = "sonatype"
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+        repositories {
+            maven {
+                name = "sonatype"
+                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 
-            credentials {
-                username ossrhUsername
-                password ossrhPassword
+                credentials {
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
             }
         }
     }
 }
 
-signing {
-    sign publishing.publications
+// Only wire up the signing plugin when signing credentials are actually present.
+// This lets JitPack and other build services consume the source repo (they don't
+// have your GPG key), while Sonatype-bound publishes still get signed when you
+// run them locally with credentials in local.properties or the environment.
+def hasSigningKey = ext["signing.keyId"] != null && !ext["signing.keyId"].toString().isEmpty()
+if (hasSigningKey) {
+    afterEvaluate {
+        signing {
+            sign publishing.publications
+        }
+    }
 }
