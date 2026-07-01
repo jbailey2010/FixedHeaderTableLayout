@@ -5,7 +5,7 @@
  * Copyright (c) 2026 Jeff Bailey (fork)
  */
 
-package io.github.jbailey2010.fixedheadertable
+package com.github.jbailey2010.fixedheadertable
 
 /**
  * A mutable, listenable list of column widths intended to be shared across multiple

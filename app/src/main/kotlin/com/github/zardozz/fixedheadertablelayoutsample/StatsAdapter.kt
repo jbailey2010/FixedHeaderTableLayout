@@ -3,8 +3,8 @@ package com.github.zardozz.fixedheadertablelayoutsample
 import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import io.github.jbailey2010.fixedheadertable.CellViewHolder
-import io.github.jbailey2010.fixedheadertable.FixedHeaderTableAdapter
+import com.github.jbailey2010.fixedheadertable.CellViewHolder
+import com.github.jbailey2010.fixedheadertable.FixedHeaderTableAdapter
 
 /**
  * Generic 2D-text adapter used by all three sample activities.

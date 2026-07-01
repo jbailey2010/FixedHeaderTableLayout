@@ -27,7 +27,7 @@ plugins {
 }
 
 ext {
-    PUBLISH_GROUP_ID = 'io.github.jbailey2010'
+    PUBLISH_GROUP_ID = 'com.github.jbailey2010'
     PUBLISH_VERSION = '1.0.0'
     PUBLISH_ARTIFACT_ID = 'fixedheadertablelayout'
 }
@@ -47,7 +47,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace 'io.github.jbailey2010.fixedheadertable'
+    namespace 'com.github.jbailey2010.fixedheadertable'
     compileSdk 37
 
     defaultConfig {

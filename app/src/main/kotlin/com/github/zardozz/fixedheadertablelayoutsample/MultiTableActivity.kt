@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
-import io.github.jbailey2010.fixedheadertable.FixedHeaderTable
-import io.github.jbailey2010.fixedheadertable.SharedColumnWidths
+import com.github.jbailey2010.fixedheadertable.FixedHeaderTable
+import com.github.jbailey2010.fixedheadertable.SharedColumnWidths
 
 /**
  * Two `FixedHeaderTable`s stacked vertically that share both a `SharedColumnWidths`

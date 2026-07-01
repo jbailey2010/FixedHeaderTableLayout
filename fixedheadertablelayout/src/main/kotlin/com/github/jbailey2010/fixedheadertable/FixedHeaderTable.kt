@@ -5,7 +5,7 @@
  * Copyright (c) 2026 Jeff Bailey (fork)
  */
 
-package io.github.jbailey2010.fixedheadertable
+package com.github.jbailey2010.fixedheadertable
 
 import android.content.Context
 import android.os.Parcel
@@ -15,10 +15,10 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.jbailey2010.fixedheadertable.internal.HorizontalScrollCoordinator
-import io.github.jbailey2010.fixedheadertable.internal.TableRegionAdapter
-import io.github.jbailey2010.fixedheadertable.internal.TableRowViewHolder
-import io.github.jbailey2010.fixedheadertable.internal.VerticalScrollCoordinator
+import com.github.jbailey2010.fixedheadertable.internal.HorizontalScrollCoordinator
+import com.github.jbailey2010.fixedheadertable.internal.TableRegionAdapter
+import com.github.jbailey2010.fixedheadertable.internal.TableRowViewHolder
+import com.github.jbailey2010.fixedheadertable.internal.VerticalScrollCoordinator
 
 /**
  * A scrollable 2D table with a configurable number of pinned header rows (top) and pinned

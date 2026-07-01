@@ -1,4 +1,4 @@
-package io.github.jbailey2010.fixedheadertable
+package com.github.jbailey2010.fixedheadertable
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

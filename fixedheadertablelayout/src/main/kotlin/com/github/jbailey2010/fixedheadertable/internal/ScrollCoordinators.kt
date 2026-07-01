@@ -5,7 +5,7 @@
  * Copyright (c) 2026 Jeff Bailey (fork)
  */
 
-package io.github.jbailey2010.fixedheadertable.internal
+package com.github.jbailey2010.fixedheadertable.internal
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView

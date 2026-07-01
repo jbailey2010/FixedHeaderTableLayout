@@ -29,7 +29,7 @@ from `0.x` are total; see [Migrating from 0.x](#migrating-from-0x) below.
 
 ```groovy
 dependencies {
-    implementation 'io.github.jbailey2010:fixedheadertablelayout:1.0.0'
+    implementation 'com.github.jbailey2010:fixedheadertablelayout:1.0.0'
 }
 ```
 
@@ -41,7 +41,7 @@ where it matters, but a Kotlin codebase will read more naturally.
 XML:
 
 ```xml
-<io.github.jbailey2010.fixedheadertable.FixedHeaderTable
+<com.github.jbailey2010.fixedheadertable.FixedHeaderTable
     android:id="@+id/table"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
