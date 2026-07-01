@@ -7,7 +7,7 @@
 
 package com.github.jbailey2010.fixedheadertable.internal
 
-import android.view.View
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 /**
@@ -115,34 +115,16 @@ internal class HorizontalScrollCoordinator {
     }
 
     private fun applyCurrentOffset(rv: RecyclerView) {
-        val sync = {
-            val target = sharedOffset
-            val cur = rv.computeHorizontalScrollOffset()
-            if (cur != target) {
-                propagating = true
-                rv.scrollBy(target - cur, 0)
-                propagating = false
-            }
-        }
-        if (rv.isLaidOut && rv.childCount > 0) {
-            sync()
-        } else {
-            // A freshly-attached row RV hasn't been given its cell adapter yet at
-            // register time (bind() runs after attach). Waiting on a plain post can
-            // fire before cells are laid out, making scrollBy a no-op. Hook into
-            // the actual layout pass so we sync exactly once the row has cells.
-            rv.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
-                override fun onLayoutChange(
-                    v: View, l: Int, t: Int, r: Int, b: Int,
-                    oldL: Int, oldT: Int, oldR: Int, oldB: Int,
-                ) {
-                    val recycler = v as RecyclerView
-                    if (recycler.width > 0 && recycler.childCount > 0) {
-                        recycler.removeOnLayoutChangeListener(this)
-                        sync()
-                    }
-                }
-            })
-        }
+        val lm = rv.layoutManager as? LinearLayoutManager ?: return
+        // Apply the target offset via the LM's pending-position mechanism instead
+        // of scrollBy. scrollBy is a no-op on an unlaid-out RV; scheduling it via
+        // post or an OnLayoutChangeListener means the RV lays out ONCE at the
+        // wrong offset (visible frame) before the correction runs — that's the
+        // "column shifts left and right as rows scroll in" flicker.
+        //
+        // scrollToPositionWithOffset writes pending state that the LM consumes
+        // during the next layout pass itself, so the first drawn frame is already
+        // at the target offset.
+        lm.scrollToPositionWithOffset(0, -sharedOffset)
     }
 }
