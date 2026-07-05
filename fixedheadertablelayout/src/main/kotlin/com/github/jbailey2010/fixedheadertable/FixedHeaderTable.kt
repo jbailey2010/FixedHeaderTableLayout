@@ -230,11 +230,43 @@ class FixedHeaderTable @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = MeasureSpec.getSize(heightMeasureSpec)
-        setMeasuredDimension(width, height)
+        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
+        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+        val widthGiven = MeasureSpec.getSize(widthMeasureSpec)
+        val heightGiven = MeasureSpec.getSize(heightMeasureSpec)
 
-        if (_adapter == null) return
+        val a = _adapter
+        if (a == null) {
+            setMeasuredDimension(
+                if (widthMode == MeasureSpec.UNSPECIFIED) 0 else widthGiven,
+                if (heightMode == MeasureSpec.UNSPECIFIED) 0 else heightGiven,
+            )
+            return
+        }
+
+        // Support `wrap_content` and being nested in a ScrollView (UNSPECIFIED specs).
+        // Compute the natural size from the adapter's declared per-column widths and
+        // per-row heights, then clamp against whatever the parent allows. Note this
+        // gives up internal recycling — a UNSPECIFIED-height table measures at the
+        // full content height, and the body's LayoutManager lays out every row.
+        // For large datasets, give the table a bounded height (e.g. 0dp with
+        // ConstraintLayout constraints) so recycling stays effective.
+        var naturalWidth = 0
+        for (c in 0 until a.columnCount) naturalWidth += a.getColumnWidth(c)
+        var naturalHeight = 0
+        for (r in 0 until a.rowCount) naturalHeight += a.getRowHeight(r)
+
+        val width = when (widthMode) {
+            MeasureSpec.EXACTLY -> widthGiven
+            MeasureSpec.AT_MOST -> minOf(naturalWidth, widthGiven)
+            else -> naturalWidth
+        }
+        val height = when (heightMode) {
+            MeasureSpec.EXACTLY -> heightGiven
+            MeasureSpec.AT_MOST -> minOf(naturalHeight, heightGiven)
+            else -> naturalHeight
+        }
+        setMeasuredDimension(width, height)
 
         val cw = cornerWidth()
         val ch = cornerHeight()
